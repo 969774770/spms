@@ -1,0 +1,43 @@
+html,
+body,
+#app {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Microsoft YaHei', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  background: #f5f7fa;
+}
+
+/* 统一页面卡片留白 */
+.page-card {
+  margin: 16px;
+}
+
+/* 表格内操作链接风格（参考面板绿色链接） */
+.row-actions .el-button.is-link {
+  color: #67c23a;
+  font-weight: 500;
+}
+
+.row-actions .el-button.is-link.el-button--danger,
+.row-actions .el-button.is-link.danger {
+  color: #f56c6c;
+}
+
+/* 文件名单元格：flex 排布图标与文本 */
+.fm-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.fm-name .fm-name-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
