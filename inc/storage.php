@@ -101,11 +101,11 @@ function storage_add_file(array $u, string $softwareId, ?int $dirId, string $fil
     validate_name($fileName);
     $now = db_now();
     $old = db_one(
-        'SELECT id, object_id FROM files WHERE software_id = ? AND dir_id ' . ($dirId === null ? 'IS NULL' : '= ?') . ' AND file_name = ? AND status = 1',
+        'SELECT id, object_id, auto_run, force_overwrite, note, sort_order FROM files WHERE software_id = ? AND dir_id ' . ($dirId === null ? 'IS NULL' : '= ?') . ' AND file_name = ? AND status = 1',
         $dirId === null ? [$softwareId, $fileName] : [$softwareId, $dirId, $fileName]
     );
     if ($old) {
-        // 同名覆盖：旧记录进回收站，引用释放
+        // 同名覆盖：旧记录进回收站，引用释放；新记录继承旧记录的管理属性（自启/覆盖开关/备注/排序）
         db_update('files', ['status' => 0, 'deleted_at' => $now, 'updated_at' => $now], ['id' => (int)$old['id']]);
         storage_ref_dec((int)$old['object_id']);
     }
@@ -117,8 +117,10 @@ function storage_add_file(array $u, string $softwareId, ?int $dirId, string $fil
         'size'          => $size,
         'object_id'     => $objectId,
         'active'        => 1,
-        'note'          => mb_substr($note, 0, 255),
-        'sort_order'    => 0,
+        'auto_run'        => (int)($old['auto_run'] ?? 0),
+        'force_overwrite' => (int)($old['force_overwrite'] ?? 1),
+        'note'            => mb_substr((string)($old['note'] ?? $note), 0, 255),
+        'sort_order'      => (int)($old['sort_order'] ?? 0),
         'status'        => 1,
         'created_at'    => $now,
         'updated_at'    => $now,

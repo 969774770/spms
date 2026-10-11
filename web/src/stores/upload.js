@@ -57,14 +57,18 @@ export const useUploadStore = defineStore('upload', {
         }
         if (rIdx >= 0) {
           const r = this.items[rIdx]
-          item.uid = r.uid
-          item.hash = r.hash
-          item.uuid = r.uuid
-          item.chunkSize = r.chunkSize
-          item.totalParts = r.totalParts
-          item.uploadedParts = r.uploadedParts
-          item.progress = Math.round((r.uploadedParts.length / Math.max(1, r.totalParts)) * 100)
-          item.status = 'paused'
+          if (r.dirPath === dirPath) {
+            // 仅同目录才可复用断点会话：会话 uuid 绑定服务端 dir_path，跨目录复用会把文件传进旧目录
+            item.uid = r.uid
+            item.hash = r.hash
+            item.uuid = r.uuid
+            item.chunkSize = r.chunkSize
+            item.totalParts = r.totalParts
+            item.uploadedParts = r.uploadedParts
+            item.progress = Math.round((r.uploadedParts.length / Math.max(1, r.totalParts)) * 100)
+            item.status = 'paused'
+          }
+          // 不同目录：丢弃旧断点（hash 也可能属于不同内容），按全新上传处理
           this.items.splice(rIdx, 1, item)
           this.items.splice(this.items.indexOf(item), 1) // 移除原位置，push 到尾部
           this.items.push(item)
