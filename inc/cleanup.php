@@ -74,6 +74,32 @@ function cleanup_run(): array
     }
     $summary['purged_objects'] = $n;
 
+    // ---- 3b) 孤儿实体清扫：磁盘上存在但 DB 无记录的实体（历史故障残留），mtime 超 1 小时以避开并发写入窗口
+    $known = [];
+    foreach (db_all('SELECT hash FROM storage_objects') as $o) {
+        $known[$o['hash']] = true;
+    }
+    $orphans = 0;
+    $orphanBytes = 0;
+    foreach (glob(cfg('paths.objects') . '/*/*') ?: [] as $file) {
+        $hash = basename($file);
+        if (isset($known[$hash]) || !preg_match('/^[0-9a-f]{64}$/', $hash)) {
+            continue;
+        }
+        if ((int)@filemtime($file) > $now - 3600) {
+            continue; // 可能正处于收编/登记窗口，跳过
+        }
+        $sz = (int)@filesize($file);
+        if (@unlink($file)) {
+            $orphans++;
+            $orphanBytes += $sz;
+        } else {
+            app_log('warn', ['type' => 'cleanup.orphan_delete_refused', 'hash' => $hash]);
+        }
+    }
+    $summary['purged_orphans'] = $orphans;
+    $summary['orphan_bytes'] = $orphanBytes;
+
     // ---- 4) 超期日志 ----
     $logDays = max(1, (int)cfg('retention.log_days'));
     $logCutoff = gmdate('Ym', $now - $logDays * 86400);

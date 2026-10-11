@@ -308,7 +308,7 @@ function onKeydown(ev) {
   if (['INPUT', 'TEXTAREA'].includes(ev.target.tagName) || ev.target.isContentEditable) return
   const ctrl = ev.ctrlKey || ev.metaKey
   const key = ev.key.toLowerCase()
-  if (ctrl && key === 'a') { ev.preventDefault(); fm.selectAll() }
+  if (ctrl && key === 'a') { ev.preventDefault(); fm.selectAll(displayRows.value) }
   else if (ctrl && key === 'c' && fm.hasSelection) clipCopy()
   else if (ctrl && key === 'x' && fm.hasSelection) clipCut()
   else if (ctrl && key === 'v' && fm.clipboard) clipPaste()
@@ -403,7 +403,7 @@ watch(() => route.params.id, () => {
     </div>
     <div class="fm-body" v-loading="fm.loading">
       <FileGrid v-if="fm.view === 'grid'" :rows="displayRows" :selected="fm.selected" @click-row="onRowClick" @ctx="onCtxMenu" @dblclick="openRow" @dragstart="dragStart" @drop-dir="dropToDir" />
-      <FileTable v-else :rows="displayRows" :selected="fm.selected" :can-write="canWrite" @click-row="onRowClick" @dblclick="openRow" @ctx="onCtxMenu" @dragstart="dragStart" @drop-dir="dropToDir" @toggle-sel="(r) => fm.toggle(r._key.startsWith('d:') ? 'd' : 'f', r.id, true)" @select-all="fm.selectAll" @clear-all="fm.clearSelection" @action="onAction" />
+      <FileTable v-else :rows="displayRows" :selected="fm.selected" :can-write="canWrite" @click-row="onRowClick" @dblclick="openRow" @ctx="onCtxMenu" @dragstart="dragStart" @drop-dir="dropToDir" @toggle-sel="(r) => fm.toggle(r._key.startsWith('d:') ? 'd' : 'f', r.id, true)" @select-all="() => fm.selectAll(displayRows)" @clear-all="fm.clearSelection" @action="onAction" />
     </div>
 
     <transition name="fade">

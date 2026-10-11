@@ -55,11 +55,12 @@ export const useFmStore = defineStore('fm', {
       keys.forEach((k) => next.add(k))
       this.selected = next
     },
-    selectAll() {
+    /** 全选当前可见行（rows 为组件内筛选+排序后的 displayRows） */
+    selectAll(rows) {
       const next = new Set()
-      this.visibleDirs.forEach((d) => next.add(`d:${d.id}`))
-      this.visibleFiles.forEach((f) => next.add(`f:${f.id}`))
+      ;(rows || []).forEach((r) => next.add(r._key))
       this.selected = next
+      this.lastPicked = null
     },
     setClipboard(op) {
       this.clipboard = { op, files: this.selectedFiles, dirs: this.selectedDirs }
