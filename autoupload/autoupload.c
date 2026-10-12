@@ -766,8 +766,11 @@ static void gui_reload_rules(void)
     int n = config_load_rules(rules, 64);
     for (int i = 0; i < n; i++) {
         WCHAR line[1100];
-        const WCHAR *dn = rules[i].dir[0] ? rules[i].dir : L"/";
-        wsprintfW(line, L"%s  →  /%s  [%s]", rules[i].local, dn, rules[i].sid);
+        if (rules[i].dir[0]) {
+            wsprintfW(line, L"%s  →  /%s  [%s]", rules[i].local, rules[i].dir, rules[i].sid);
+        } else {
+            wsprintfW(line, L"%s  →  /  [%s]", rules[i].local, rules[i].sid);
+        }
         ListBox_AddString(g_hList, line);
     }
 }
@@ -894,7 +897,11 @@ static int run_gui(void)
     int W = 560, H = 470;
     RECT wa;
     SystemParametersInfoW(SPI_GETWORKAREA, 0, &wa, 0);
-    int x = (wa.right - W) / 2, y = (wa.top - H) / 2;
+    /* 在主屏工作区内居中；负值兜底归 0，防止窗口跑到屏幕外 */
+    int x = wa.left + ((wa.right - wa.left) - W) / 2;
+    int y = wa.top + ((wa.bottom - wa.top) - H) / 2;
+    if (x < wa.left) x = wa.left;
+    if (y < wa.top) y = wa.top;
     g_hMain = CreateWindowExW(WS_EX_ACCEPTFILES, wc.lpszClassName,
                               L"自动上传 - 设置（软件发布管理系统）",
                               WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,
